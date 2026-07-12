@@ -53,6 +53,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     otp_base32 = models.CharField(max_length=255, blank=True, null=True)
     otp_auth_url = models.TextField(blank=True, null=True)
     refresh_token = models.TextField(blank=True, null=True)
+    reset_token = models.CharField(max_length=255, blank=True, null=True)
+    verify_token = models.CharField(max_length=255, blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     role = models.ForeignKey(

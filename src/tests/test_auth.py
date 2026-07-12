@@ -160,7 +160,7 @@ class AuthPasswordTest(BaseTestCase):
     def test_change_password(self):
         resp = self.client.post(
             '/api/v1/auth/change-password',
-            {'password': 'newpassword123', 'password_confirmation': 'newpassword123'},
+            {'oldPassword': 'password123', 'newPassword': 'newpassword123'},
             content_type='application/json',
             **self.auth_header(),
         )
@@ -169,6 +169,38 @@ class AuthPasswordTest(BaseTestCase):
         resp2 = self.client.post(
             '/api/v1/auth/login',
             {'usernameOrEmail': 'testuser', 'password': 'newpassword123'},
+            content_type='application/json',
+        )
+        self.assertEqual(resp2.status_code, 200)
+
+    def test_change_password_wrong_old(self):
+        resp = self.client.post(
+            '/api/v1/auth/change-password',
+            {'oldPassword': 'wrongpassword', 'newPassword': 'newpassword123'},
+            content_type='application/json',
+            **self.auth_header(),
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    def test_reset_password_with_token(self):
+        self.client.post(
+            '/api/v1/auth/forgot-password',
+            {'email': 'test@test.com'},
+            content_type='application/json',
+        )
+        self.user.refresh_from_db()
+        self.assertIsNotNone(self.user.reset_token)
+
+        resp = self.client.post(
+            '/api/v1/auth/reset-password',
+            {'password': 'resetpass123', 'token': self.user.reset_token},
+            content_type='application/json',
+        )
+        self.assertEqual(resp.status_code, 200)
+
+        resp2 = self.client.post(
+            '/api/v1/auth/login',
+            {'usernameOrEmail': 'testuser', 'password': 'resetpass123'},
             content_type='application/json',
         )
         self.assertEqual(resp2.status_code, 200)

@@ -104,6 +104,8 @@ def register_view(request):
     )
 
     token = generate_token()
+    user.verify_token = token
+    user.save()
     send_verify_email(user.email, token, str(user.id))
 
     return Response(
@@ -135,7 +137,9 @@ def logout_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def refresh_token_view(request):
-    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    # Frontends send the refresh token in the body; the header is a fallback
+    token = request.data.get('refreshToken') or request.headers.get(
+        'Authorization', '').replace('Bearer ', '')
     if not token:
         return Response({'status': 'warning', 'message': 'No token provided'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -195,6 +199,8 @@ def send_verify_email_view(request):
             return Response({'status': 'error', 'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
     token = generate_token()
+    user.verify_token = token
+    user.save()
     send_verify_email(user.email, token, str(user.id))
 
     return Response({'status': 'success', 'message': 'Email sent successfully'})
@@ -203,28 +209,24 @@ def send_verify_email_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def verify_email_view(request):
-    user_id = request.data.get('user_id')
     token = request.data.get('token')
 
-    if not user_id or not token:
+    if not token:
         return Response(
-            {'status': 'warning', 'message': 'user_id and token are required'},
+            {'status': 'warning', 'message': 'token is required'},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     try:
-        user = User.objects.get(id=user_id)
+        user = User.objects.get(verify_token=token)
     except User.DoesNotExist:
-        return Response({'status': 'error', 'message': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-
-    if BlacklistedToken.objects.filter(token=token).exists():
         return Response(
-            {'status': 'warning', 'message': 'Token has already been invalidated'},
-            status=status.HTTP_401_UNAUTHORIZED,
+            {'status': 'error', 'message': 'Invalid or expired verification token'},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-    BlacklistedToken.objects.create(token=token)
     user.is_verified = True
+    user.verify_token = None
     user.save()
 
     refresh = RefreshToken.for_user(user)
@@ -262,6 +264,8 @@ def forgot_password_view(request):
         )
 
     token = generate_token()
+    user.reset_token = token
+    user.save()
     send_reset_password_email(user.email, token, str(user.id))
 
     return Response({'status': 'success', 'message': 'Email sent successfully'})
@@ -277,18 +281,15 @@ def reset_password_view(request):
     data = serializer.validated_data
 
     try:
-        user = User.objects.get(id=data['user_id'])
+        user = User.objects.get(reset_token=data['token'])
     except User.DoesNotExist:
-        return Response({'status': 'error', 'message': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-
-    if BlacklistedToken.objects.filter(token=data['token']).exists():
         return Response(
-            {'status': 'warning', 'message': 'Token has already been invalidated'},
-            status=status.HTTP_401_UNAUTHORIZED,
+            {'status': 'error', 'message': 'Invalid or expired reset token'},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-    BlacklistedToken.objects.create(token=data['token'])
     user.set_password(data['password'])
+    user.reset_token = None
     user.save()
 
     return Response({'status': 'success', 'message': 'Password reset successful'})
@@ -301,7 +302,14 @@ def change_password_view(request):
     if not serializer.is_valid():
         return Response({'status': 'warning', 'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    request.user.set_password(serializer.validated_data['password'])
+    data = serializer.validated_data
+    if not request.user.check_password(data['oldPassword']):
+        return Response(
+            {'status': 'error', 'message': 'Current password is incorrect'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    request.user.set_password(data['newPassword'])
     request.user.save()
 
     return Response({'status': 'success', 'message': 'Password changed successfully'})

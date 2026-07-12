@@ -51,24 +51,18 @@ class ForgotPasswordSerializer(serializers.Serializer):
 
 
 class ResetPasswordSerializer(serializers.Serializer):
-    user_id = serializers.UUIDField()
     token = serializers.CharField()
     password = serializers.CharField(min_length=8)
-    password_confirmation = serializers.CharField(min_length=8)
+    password_confirmation = serializers.CharField(min_length=8, required=False)
 
     def validate(self, data):
-        if data['password'] != data['password_confirmation']:
+        confirmation = data.get('password_confirmation')
+        if confirmation is not None and data['password'] != confirmation:
             raise serializers.ValidationError(
                 {'password': 'Passwords do not match'})
         return data
 
 
 class ChangePasswordSerializer(serializers.Serializer):
-    password = serializers.CharField(min_length=8)
-    password_confirmation = serializers.CharField(min_length=8)
-
-    def validate(self, data):
-        if data['password'] != data['password_confirmation']:
-            raise serializers.ValidationError(
-                {'password': 'Passwords do not match'})
-        return data
+    oldPassword = serializers.CharField()
+    newPassword = serializers.CharField(min_length=8)
