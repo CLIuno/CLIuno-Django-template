@@ -15,7 +15,6 @@ from src.helpers.email import (
 from src.models import BlacklistedToken, Role, User
 from src.serializers.user_serializers import (
     ChangePasswordSerializer,
-    ForgotPasswordSerializer,
     LoginSerializer,
     RegisterSerializer,
     ResetPasswordSerializer,
@@ -183,17 +182,20 @@ def check_token_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def send_verify_email_view(request):
-    email = request.data.get('email')
-    if not email:
-        return Response({'status': 'warning', 'message': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return Response({'status': 'error', 'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    # Authenticated requests derive the target user; `email` is a fallback.
+    if getattr(request, 'user', None) and request.user.is_authenticated:
+        user = request.user
+    else:
+        email = request.data.get('email')
+        if not email:
+            return Response({'status': 'warning', 'message': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'status': 'error', 'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
     token = generate_token()
-    send_verify_email(email, token, str(user.id))
+    send_verify_email(user.email, token, str(user.id))
 
     return Response({'status': 'success', 'message': 'Email sent successfully'})
 
@@ -240,11 +242,13 @@ def verify_email_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def forgot_password_view(request):
-    serializer = ForgotPasswordSerializer(data=request.data)
-    if not serializer.is_valid():
-        return Response({'status': 'warning', 'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-    username_or_email = serializer.validated_data['usernameOrEmail']
+    # Frontends send `email`; `usernameOrEmail` is kept for compatibility
+    username_or_email = request.data.get('email') or request.data.get('usernameOrEmail')
+    if not username_or_email:
+        return Response(
+            {'status': 'warning', 'message': 'Email is required'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         if '@' in username_or_email:
@@ -305,22 +309,27 @@ def change_password_view(request):
 
 # OTP Views
 
+def _resolve_request_user(request):
+    """Authenticated requests act on the current user; usernameOrEmail is a fallback."""
+    if getattr(request, 'user', None) and request.user.is_authenticated:
+        return request.user
+
+    username_or_email = request.data.get('usernameOrEmail')
+    if not username_or_email:
+        return None
+    try:
+        if '@' in username_or_email:
+            return User.objects.get(email=username_or_email)
+        return User.objects.get(username=username_or_email)
+    except User.DoesNotExist:
+        return None
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def otp_generate_view(request):
-    username_or_email = request.data.get('usernameOrEmail')
-    if not username_or_email:
-        return Response(
-            {'status': 'error', 'message': 'usernameOrEmail is required'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        if '@' in username_or_email:
-            user = User.objects.get(email=username_or_email)
-        else:
-            user = User.objects.get(username=username_or_email)
-    except User.DoesNotExist:
+    user = _resolve_request_user(request)
+    if user is None:
         return Response({'status': 'error', 'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
     secret = pyotp.random_base32()
@@ -334,29 +343,22 @@ def otp_generate_view(request):
 
     return Response({
         'status': 'success',
-        'base32': secret,
-        'otpauth_url': provisioning_uri,
+        'message': 'OTP secret generated',
+        'data': {
+            'secret': secret,
+            'base32': secret,
+            'otpauth_url': provisioning_uri,
+        },
     })
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def otp_verify_view(request):
-    username_or_email = request.data.get('usernameOrEmail')
-    token = request.data.get('token')
+    user = _resolve_request_user(request)
+    token = request.data.get('otp') or request.data.get('token')
 
-    if not username_or_email:
-        return Response(
-            {'status': 'error', 'message': 'usernameOrEmail is required'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        if '@' in username_or_email:
-            user = User.objects.get(email=username_or_email)
-        else:
-            user = User.objects.get(username=username_or_email)
-    except User.DoesNotExist:
+    if user is None:
         return Response(
             {'status': 'error', 'message': 'Token is invalid or user does not exist'},
             status=status.HTTP_404_NOT_FOUND,
@@ -366,7 +368,7 @@ def otp_verify_view(request):
         return Response({'status': 'error', 'message': 'OTP not set up'}, status=status.HTTP_400_BAD_REQUEST)
 
     totp = pyotp.TOTP(user.otp_base32)
-    if not totp.verify(token):
+    if not token or not totp.verify(token, valid_window=1):
         return Response({'status': 'error', 'message': 'Authentication failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
     user.is_otp_verified = True
@@ -379,21 +381,10 @@ def otp_verify_view(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def otp_validate_view(request):
-    username_or_email = request.data.get('usernameOrEmail')
-    token = request.data.get('token')
+    user = _resolve_request_user(request)
+    token = request.data.get('otp') or request.data.get('token')
 
-    if not username_or_email:
-        return Response(
-            {'status': 'error', 'message': 'usernameOrEmail is required'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        if '@' in username_or_email:
-            user = User.objects.get(email=username_or_email)
-        else:
-            user = User.objects.get(username=username_or_email)
-    except User.DoesNotExist:
+    if user is None:
         return Response({'status': 'error', 'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
     if not user.is_otp_enabled:
@@ -403,7 +394,7 @@ def otp_validate_view(request):
         )
 
     totp = pyotp.TOTP(user.otp_base32)
-    if not totp.verify(token):
+    if not token or not totp.verify(token, valid_window=1):
         return Response({'status': 'error', 'message': 'Authentication failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
     return Response({'status': 'success', 'message': 'OTP validated successfully'})
@@ -412,23 +403,13 @@ def otp_validate_view(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def otp_disable_view(request):
-    username_or_email = request.data.get('usernameOrEmail')
-
-    if not username_or_email:
-        return Response(
-            {'status': 'error', 'message': 'usernameOrEmail is required'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        if '@' in username_or_email:
-            user = User.objects.get(email=username_or_email)
-        else:
-            user = User.objects.get(username=username_or_email)
-    except User.DoesNotExist:
+    user = _resolve_request_user(request)
+    if user is None:
         return Response({'status': 'error', 'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
     user.is_otp_enabled = False
+    user.otp_base32 = None
+    user.otp_auth_url = None
     user.save()
 
     return Response({'status': 'success', 'message': 'OTP disabled successfully'})
