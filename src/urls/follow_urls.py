@@ -1,5 +1,6 @@
 from django.urls import path
 
+from src.urls.dispatch import method_dispatch
 from src.views.follow_views import (
     follow_user,
     get_followers,
@@ -9,9 +10,10 @@ from src.views.follow_views import (
 )
 
 urlpatterns = [
-    path('<uuid:user_id>/follow', follow_user, name='follow-user'),
-    path('<uuid:user_id>/unfollow', unfollow_user, name='unfollow-user'),
-    path('<uuid:user_id>/followers', get_followers, name='followers'),
-    path('<uuid:user_id>/following', get_following, name='following'),
-    path('<uuid:user_id>/is-following', is_following, name='is-following'),
+    path('/<uuid:user_id>/follow',
+         method_dispatch(POST=follow_user, DELETE=unfollow_user),
+         name='follow-user'),
+    path('/<uuid:user_id>/followers', get_followers, name='followers'),
+    path('/<uuid:user_id>/following', get_following, name='following'),
+    path('/<uuid:user_id>/is-following', is_following, name='is-following'),
 ]

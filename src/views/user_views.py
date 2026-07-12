@@ -14,7 +14,7 @@ from src.serializers.user_serializers import UserSerializer, UserUpdateSerialize
 def current_user_view(request):
     if request.method == 'GET':
         serializer = UserSerializer(request.user)
-        return Response({'status': 'success', 'data': serializer.data})
+        return Response({'status': 'success', 'data': {'user': serializer.data}})
 
     if request.method == 'PATCH':
         serializer = UserUpdateSerializer(
@@ -25,7 +25,7 @@ def current_user_view(request):
         return Response({
             'status': 'success',
             'message': 'User updated',
-            'data': UserSerializer(request.user).data,
+            'data': {'user': UserSerializer(request.user).data},
         })
 
     if request.method == 'DELETE':
@@ -36,7 +36,7 @@ def current_user_view(request):
         return Response({
             'status': 'success',
             'message': 'User deleted',
-            'data': UserSerializer(user).data,
+            'data': {'user': UserSerializer(user).data},
         })
 
 
@@ -47,7 +47,7 @@ def get_user_by_username(request, username):
         user = User.objects.get(username=username)
     except User.DoesNotExist:
         return Response({'status': 'warning', 'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-    return Response({'status': 'success', 'data': UserSerializer(user).data})
+    return Response({'status': 'success', 'data': {'user': UserSerializer(user).data}})
 
 
 @api_view(['GET'])
@@ -57,13 +57,20 @@ def get_user_by_id(request, pk):
         user = User.objects.get(id=pk)
     except User.DoesNotExist:
         return Response({'status': 'warning', 'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-    return Response({'status': 'success', 'data': UserSerializer(user).data})
+    return Response({'status': 'success', 'data': {'user': UserSerializer(user).data}})
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_posts_by_user(request):
-    posts = Post.objects.filter(user=request.user)
+def get_posts_by_user(request, pk):
+    try:
+        user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response(
+            {'status': 'warning', 'message': 'User not found'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    posts = Post.objects.filter(user=user)
     from src.serializers.post_serializers import PostSerializer
     return Response({
         'status': 'success',
@@ -74,8 +81,14 @@ def get_posts_by_user(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_roles_by_user(request):
-    user = request.user
+def get_roles_by_user(request, pk):
+    try:
+        user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response(
+            {'status': 'warning', 'message': 'User not found'},
+            status=status.HTTP_404_NOT_FOUND,
+        )
     from src.serializers.role_serializers import RoleSerializer
     if user.role:
         return Response({
@@ -85,14 +98,15 @@ def get_roles_by_user(request):
     return Response({'status': 'success', 'data': {'role': None}})
 
 
-# Admin routes
-
 @api_view(['GET'])
-@permission_classes([IsAdmin])
+@permission_classes([IsAuthenticated])
 def get_all_users(request):
     users = User.objects.all()
     serializer = UserSerializer(users, many=True)
-    return Response({'status': 'success', 'data': serializer.data})
+    return Response({'status': 'success', 'data': {'users': serializer.data}})
+
+
+# Admin routes
 
 
 @api_view(['PATCH'])

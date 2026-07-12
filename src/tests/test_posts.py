@@ -10,7 +10,7 @@ class PostCRUDTest(BaseTestCase):
         )
 
     def test_get_all_posts(self):
-        resp = self.client.get('/api/v1/posts/', **self.auth_header())
+        resp = self.client.get('/api/v1/posts', **self.auth_header())
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(resp.json()['data']['posts']), 1)
 
@@ -30,7 +30,7 @@ class PostCRUDTest(BaseTestCase):
 
     def test_create_post(self):
         resp = self.client.post(
-            '/api/v1/posts/create',
+            '/api/v1/posts',
             {'title': 'New Post', 'content': 'New Content'},
             content_type='application/json',
             **self.auth_header(),
@@ -40,7 +40,7 @@ class PostCRUDTest(BaseTestCase):
 
     def test_create_post_missing_fields(self):
         resp = self.client.post(
-            '/api/v1/posts/create',
+            '/api/v1/posts',
             {'title': 'No content'},
             content_type='application/json',
             **self.auth_header(),
@@ -49,7 +49,7 @@ class PostCRUDTest(BaseTestCase):
 
     def test_update_post(self):
         resp = self.client.patch(
-            f'/api/v1/posts/{self.post.id}/update',
+            f'/api/v1/posts/{self.post.id}',
             {'title': 'Updated Title'},
             content_type='application/json',
             **self.auth_header(),
@@ -60,7 +60,7 @@ class PostCRUDTest(BaseTestCase):
 
     def test_delete_post(self):
         resp = self.client.delete(
-            f'/api/v1/posts/{self.post.id}/delete', **self.auth_header()
+            f'/api/v1/posts/{self.post.id}', **self.auth_header()
         )
         self.assertEqual(resp.status_code, 200)
         self.assertFalse(Post.objects.filter(id=self.post.id).exists())
@@ -72,7 +72,7 @@ class PostCRUDTest(BaseTestCase):
         self.assertEqual(len(resp.json()['data']['posts']), 1)
 
     def test_no_auth(self):
-        resp = self.client.get('/api/v1/posts/')
+        resp = self.client.get('/api/v1/posts')
         self.assertEqual(resp.status_code, 401)
 
 
@@ -85,7 +85,7 @@ class CommentTest(BaseTestCase):
 
     def test_create_comment(self):
         resp = self.client.post(
-            f'/api/v1/posts/{self.post.id}/comments/create',
+            f'/api/v1/posts/{self.post.id}/comments',
             {'content': 'Nice post!'},
             content_type='application/json',
             **self.auth_header(),
@@ -110,7 +110,7 @@ class CommentTest(BaseTestCase):
             content='Original', user=self.user, post=self.post
         )
         resp = self.client.patch(
-            f'/api/v1/posts/{self.post.id}/comments/{comment.id}/update',
+            f'/api/v1/posts/{self.post.id}/comments/{comment.id}',
             {'content': 'Edited'},
             content_type='application/json',
             **self.auth_header(),
@@ -124,7 +124,7 @@ class CommentTest(BaseTestCase):
             content='Delete me', user=self.user, post=self.post
         )
         resp = self.client.delete(
-            f'/api/v1/posts/{self.post.id}/comments/{comment.id}/delete',
+            f'/api/v1/posts/{self.post.id}/comments/{comment.id}',
             **self.auth_header(),
         )
         self.assertEqual(resp.status_code, 200)
@@ -135,7 +135,7 @@ class CommentTest(BaseTestCase):
             content='Admin comment', user=self.admin_user, post=self.post
         )
         resp = self.client.patch(
-            f'/api/v1/posts/{self.post.id}/comments/{comment.id}/update',
+            f'/api/v1/posts/{self.post.id}/comments/{comment.id}',
             {'content': 'Hacked'},
             content_type='application/json',
             **self.auth_header(),

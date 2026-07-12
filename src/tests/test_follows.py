@@ -30,13 +30,13 @@ class FollowTest(BaseTestCase):
     def test_unfollow(self):
         Follow.objects.create(follower=self.user, following=self.admin_user)
         resp = self.client.delete(
-            f'/api/v1/follows/{self.admin_user.id}/unfollow', **self.auth_header()
+            f'/api/v1/follows/{self.admin_user.id}/follow', **self.auth_header()
         )
         self.assertEqual(resp.status_code, 200)
 
     def test_unfollow_not_following(self):
         resp = self.client.delete(
-            f'/api/v1/follows/{self.admin_user.id}/unfollow', **self.auth_header()
+            f'/api/v1/follows/{self.admin_user.id}/follow', **self.auth_header()
         )
         self.assertEqual(resp.status_code, 404)
 

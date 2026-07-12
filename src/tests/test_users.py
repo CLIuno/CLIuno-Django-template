@@ -6,7 +6,7 @@ class UserCurrentTest(BaseTestCase):
     def test_get_current_user(self):
         resp = self.client.get('/api/v1/users/current', **self.auth_header())
         self.assertEqual(resp.status_code, 200)
-        data = resp.json()['data']
+        data = resp.json()['data']['user']
         self.assertEqual(data['username'], 'testuser')
         self.assertEqual(data['email'], 'test@test.com')
 
@@ -22,7 +22,7 @@ class UserCurrentTest(BaseTestCase):
             **self.auth_header(),
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.json()['data']['first_name'], 'Updated')
+        self.assertEqual(resp.json()['data']['user']['first_name'], 'Updated')
 
     def test_delete_current_user(self):
         resp = self.client.delete(
@@ -38,7 +38,7 @@ class UserByUsernameTest(BaseTestCase):
             '/api/v1/users/username/testuser', **self.auth_header()
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.json()['data']['username'], 'testuser')
+        self.assertEqual(resp.json()['data']['user']['username'], 'testuser')
 
     def test_get_by_username_not_found(self):
         resp = self.client.get(
@@ -53,22 +53,23 @@ class UserByIdTest(BaseTestCase):
             f'/api/v1/users/{self.user.id}', **self.auth_header()
         )
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.json()['data']['username'], 'testuser')
+        self.assertEqual(resp.json()['data']['user']['username'], 'testuser')
 
 
 class UserAdminTest(BaseTestCase):
     def test_get_all_users_as_admin(self):
-        resp = self.client.get('/api/v1/users/', **self.admin_auth_header())
+        resp = self.client.get('/api/v1/users', **self.admin_auth_header())
         self.assertEqual(resp.status_code, 200)
-        self.assertGreaterEqual(len(resp.json()['data']), 2)
+        self.assertGreaterEqual(len(resp.json()['data']['users']), 2)
 
     def test_get_all_users_as_regular_user(self):
-        resp = self.client.get('/api/v1/users/', **self.auth_header())
-        self.assertEqual(resp.status_code, 403)
+        # Any authenticated user may list users (the frontend users page relies on it)
+        resp = self.client.get('/api/v1/users', **self.auth_header())
+        self.assertEqual(resp.status_code, 200)
 
     def test_admin_update_user(self):
         resp = self.client.patch(
-            f'/api/v1/users/{self.user.id}/update',
+            f'/api/v1/users/{self.user.id}',
             {'first_name': 'AdminUpdated'},
             content_type='application/json',
             **self.admin_auth_header(),
@@ -79,7 +80,7 @@ class UserAdminTest(BaseTestCase):
 
     def test_admin_delete_user(self):
         resp = self.client.delete(
-            f'/api/v1/users/{self.user.id}/delete', **self.admin_auth_header()
+            f'/api/v1/users/{self.user.id}', **self.admin_auth_header()
         )
         self.assertEqual(resp.status_code, 200)
         self.user.refresh_from_db()

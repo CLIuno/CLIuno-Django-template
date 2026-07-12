@@ -12,7 +12,7 @@ class TodoCRUDTest(BaseTestCase):
         )
 
     def test_get_all_todos(self):
-        resp = self.client.get('/api/v1/todos/', **self.auth_header())
+        resp = self.client.get('/api/v1/todos', **self.auth_header())
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(resp.json()['data']['todos']), 1)
 
@@ -31,7 +31,7 @@ class TodoCRUDTest(BaseTestCase):
 
     def test_create_todo(self):
         resp = self.client.post(
-            '/api/v1/todos/create',
+            '/api/v1/todos',
             {'title': 'New Todo', 'description': 'New Desc'},
             content_type='application/json',
             **self.auth_header(),
@@ -41,7 +41,7 @@ class TodoCRUDTest(BaseTestCase):
 
     def test_create_todo_missing_title(self):
         resp = self.client.post(
-            '/api/v1/todos/create',
+            '/api/v1/todos',
             {'description': 'No title'},
             content_type='application/json',
             **self.auth_header(),
@@ -50,7 +50,7 @@ class TodoCRUDTest(BaseTestCase):
 
     def test_update_own_todo(self):
         resp = self.client.patch(
-            f'/api/v1/todos/{self.todo.id}/update',
+            f'/api/v1/todos/{self.todo.id}',
             {'title': 'Updated'},
             content_type='application/json',
             **self.auth_header(),
@@ -64,7 +64,7 @@ class TodoCRUDTest(BaseTestCase):
             title='Admin Todo', user=self.admin_user
         )
         resp = self.client.patch(
-            f'/api/v1/todos/{other_todo.id}/update',
+            f'/api/v1/todos/{other_todo.id}',
             {'title': 'Hacked'},
             content_type='application/json',
             **self.auth_header(),
@@ -73,7 +73,7 @@ class TodoCRUDTest(BaseTestCase):
 
     def test_delete_own_todo(self):
         resp = self.client.delete(
-            f'/api/v1/todos/{self.todo.id}/delete', **self.auth_header()
+            f'/api/v1/todos/{self.todo.id}', **self.auth_header()
         )
         self.assertEqual(resp.status_code, 200)
         self.assertFalse(Todo.objects.filter(id=self.todo.id).exists())
@@ -100,5 +100,5 @@ class TodoCRUDTest(BaseTestCase):
         self.assertEqual(len(resp.json()['data']['todos']), 1)
 
     def test_no_auth(self):
-        resp = self.client.get('/api/v1/todos/')
+        resp = self.client.get('/api/v1/todos')
         self.assertEqual(resp.status_code, 401)

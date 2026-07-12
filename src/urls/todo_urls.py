@@ -1,5 +1,6 @@
 from django.urls import path
 
+from src.urls.dispatch import method_dispatch
 from src.views.todo_views import (
     create_todo,
     delete_todo,
@@ -11,11 +12,10 @@ from src.views.todo_views import (
 )
 
 urlpatterns = [
-    path('current-user', get_current_user_todos, name='todo-current-user'),
-    path('', get_all_todos, name='todo-list'),
-    path('create', create_todo, name='todo-create'),
-    path('<uuid:pk>', get_todo_by_id, name='todo-detail'),
-    path('<uuid:pk>/update', update_todo, name='todo-update'),
-    path('<uuid:pk>/delete', delete_todo, name='todo-delete'),
-    path('<uuid:pk>/toggle', toggle_todo, name='todo-toggle'),
+    path('/current-user', get_current_user_todos, name='todo-current-user'),
+    path('', method_dispatch(GET=get_all_todos, POST=create_todo), name='todo-collection'),
+    path('/<uuid:pk>',
+         method_dispatch(GET=get_todo_by_id, PATCH=update_todo, DELETE=delete_todo),
+         name='todo-detail'),
+    path('/<uuid:pk>/toggle', toggle_todo, name='todo-toggle'),
 ]

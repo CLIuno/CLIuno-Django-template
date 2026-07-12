@@ -1,5 +1,6 @@
 from django.urls import path
 
+from src.urls.dispatch import method_dispatch
 from src.views.user_views import (
     current_user_view,
     delete_user_by_id,
@@ -12,13 +13,12 @@ from src.views.user_views import (
 )
 
 urlpatterns = [
-    path('current', current_user_view, name='user-current'),
-    path('username/<str:username>', get_user_by_username, name='user-by-username'),
-    path('posts', get_posts_by_user, name='user-posts'),
-    path('role', get_roles_by_user, name='user-role'),
-    path('<uuid:pk>', get_user_by_id, name='user-by-id'),
-    # Admin routes
+    path('/current', current_user_view, name='user-current'),
+    path('/username/<str:username>', get_user_by_username, name='user-by-username'),
     path('', get_all_users, name='user-list'),
-    path('<uuid:pk>/update', update_user_by_id, name='user-update'),
-    path('<uuid:pk>/delete', delete_user_by_id, name='user-delete'),
+    path('/<uuid:pk>',
+         method_dispatch(GET=get_user_by_id, PATCH=update_user_by_id, DELETE=delete_user_by_id),
+         name='user-detail'),
+    path('/<uuid:pk>/posts', get_posts_by_user, name='user-posts'),
+    path('/<uuid:pk>/roles', get_roles_by_user, name='user-roles'),
 ]
