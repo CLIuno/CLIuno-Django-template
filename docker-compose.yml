@@ -1,0 +1,33 @@
+services:
+  sqlite:
+    container_name: mybackend_sqlite
+    image: nouchka/sqlite3:latest
+    volumes:
+      - ./db.sqlite3:/var/lib/sqlite/data/db.sqlite3
+    ports:
+      - "5432:5432"
+
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  redis:
+    image: redis:latest
+    container_name: mybackend_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: always
+
+volumes:
+  redis-data: {}
