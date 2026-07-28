@@ -7,4 +7,5 @@ urlpatterns = [
     path('posts', include('src.urls.post_urls')),
     path('todos', include('src.urls.todo_urls')),
     path('follows', include('src.urls.follow_urls')),
+    path('uploads', include('src.urls.upload_urls')),
 ]

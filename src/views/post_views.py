@@ -60,7 +60,8 @@ def create_post(request):
     post = Post.objects.create(
         title=title,
         content=content,
-        image_url=request.data.get('image_url', ''),
+        # frontends may send either casing; image_url is what goes back out
+        image_url=request.data.get('image_url', request.data.get('imageUrl', '')),
         is_paid=request.data.get('is_paid', False),
         user=request.user,
     )
@@ -82,6 +83,9 @@ def update_post(request, pk):
     for field in ['title', 'content', 'image_url', 'is_paid']:
         if field in request.data:
             setattr(post, field, request.data[field])
+    # camelCase alias for the same column
+    if 'image_url' not in request.data and 'imageUrl' in request.data:
+        post.image_url = request.data['imageUrl']
     post.save()
 
     return Response({'status': 'success', 'message': 'Post updated successfully'})

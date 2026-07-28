@@ -8,7 +8,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'username', 'first_name', 'last_name', 'date_of_birth',
-            'gender', 'nationality', 'phone', 'email', 'is_online',
+            'gender', 'nationality', 'avatar_url', 'phone', 'email', 'is_online',
             'is_verified', 'is_otp_enabled', 'is_otp_verified',
             'is_deleted', 'role', 'created_at', 'updated_at',
         ]
@@ -20,7 +20,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'first_name', 'last_name', 'date_of_birth', 'gender',
-            'nationality', 'phone',
+            'nationality', 'avatar_url', 'phone',
         ]
 
 

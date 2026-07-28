@@ -44,6 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_of_birth = models.CharField(max_length=255, blank=True, null=True)
     gender = models.CharField(max_length=50, blank=True, null=True)
     nationality = models.CharField(max_length=255, blank=True, null=True)
+    avatar_url = models.TextField(blank=True, null=True)
     phone = models.CharField(max_length=50, unique=True)
     email = models.EmailField(unique=True)
     is_online = models.BooleanField(default=False)

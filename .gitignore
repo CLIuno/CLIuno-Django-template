@@ -46,3 +46,7 @@ Thumbs.db
 
 # uv
 uv.lock
+
+# uploaded images
+uploads/*
+!uploads/.gitkeep
