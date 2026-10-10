@@ -10,9 +10,7 @@ from src.views.follow_views import (
 )
 
 urlpatterns = [
-    path('/<uuid:user_id>/follow',
-         method_dispatch(POST=follow_user, DELETE=unfollow_user),
-         name='follow-user'),
+    path('/<uuid:user_id>/follow', method_dispatch(POST=follow_user, DELETE=unfollow_user), name='follow-user'),
     path('/<uuid:user_id>/followers', get_followers, name='followers'),
     path('/<uuid:user_id>/following', get_following, name='following'),
     path('/<uuid:user_id>/is-following', is_following, name='is-following'),

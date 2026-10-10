@@ -8,6 +8,7 @@ def method_dispatch(**views):
     Each target view is a regular @api_view-decorated function, so it keeps
     its own auth/permission handling; this wrapper only picks which one runs.
     """
+
     @csrf_exempt
     def view(request, *args, **kwargs):
         handler = views.get(request.method)

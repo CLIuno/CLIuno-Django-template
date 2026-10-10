@@ -1,4 +1,3 @@
-from src.models import User
 from src.tests.base import BaseTestCase
 
 
@@ -25,8 +24,7 @@ class UserCurrentTest(BaseTestCase):
         self.assertEqual(resp.json()['data']['user']['first_name'], 'Updated')
 
     def test_delete_current_user(self):
-        resp = self.client.delete(
-            '/api/v1/users/current', **self.auth_header())
+        resp = self.client.delete('/api/v1/users/current', **self.auth_header())
         self.assertEqual(resp.status_code, 200)
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_deleted)
@@ -34,24 +32,18 @@ class UserCurrentTest(BaseTestCase):
 
 class UserByUsernameTest(BaseTestCase):
     def test_get_by_username(self):
-        resp = self.client.get(
-            '/api/v1/users/username/testuser', **self.auth_header()
-        )
+        resp = self.client.get('/api/v1/users/username/testuser', **self.auth_header())
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()['data']['user']['username'], 'testuser')
 
     def test_get_by_username_not_found(self):
-        resp = self.client.get(
-            '/api/v1/users/username/nobody', **self.auth_header()
-        )
+        resp = self.client.get('/api/v1/users/username/nobody', **self.auth_header())
         self.assertEqual(resp.status_code, 404)
 
 
 class UserByIdTest(BaseTestCase):
     def test_get_by_id(self):
-        resp = self.client.get(
-            f'/api/v1/users/{self.user.id}', **self.auth_header()
-        )
+        resp = self.client.get(f'/api/v1/users/{self.user.id}', **self.auth_header())
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()['data']['user']['username'], 'testuser')
 
@@ -79,9 +71,7 @@ class UserAdminTest(BaseTestCase):
         self.assertEqual(self.user.first_name, 'AdminUpdated')
 
     def test_admin_delete_user(self):
-        resp = self.client.delete(
-            f'/api/v1/users/{self.user.id}', **self.admin_auth_header()
-        )
+        resp = self.client.delete(f'/api/v1/users/{self.user.id}', **self.admin_auth_header())
         self.assertEqual(resp.status_code, 200)
         self.user.refresh_from_db()
         self.assertTrue(self.user.is_deleted)

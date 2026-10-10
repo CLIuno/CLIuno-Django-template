@@ -131,23 +131,20 @@ class AuthRegisterTest(BaseTestCase):
 class AuthLogoutTest(BaseTestCase):
     def test_logout_success(self):
         token = self.get_token()
-        resp = self.client.post('/api/v1/auth/logout',
-                                **self.auth_header(token))
+        resp = self.client.post('/api/v1/auth/logout', **self.auth_header(token))
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()['status'], 'success')
 
     def test_logout_double(self):
         token = self.get_token()
         self.client.post('/api/v1/auth/logout', **self.auth_header(token))
-        resp = self.client.post('/api/v1/auth/logout',
-                                **self.auth_header(token))
+        resp = self.client.post('/api/v1/auth/logout', **self.auth_header(token))
         self.assertEqual(resp.status_code, 401)
 
 
 class AuthCheckTokenTest(BaseTestCase):
     def test_check_valid_token(self):
-        resp = self.client.post(
-            '/api/v1/auth/check-token', **self.auth_header())
+        resp = self.client.post('/api/v1/auth/check-token', **self.auth_header())
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()['message'], 'Token is valid')
 

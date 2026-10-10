@@ -17,27 +17,30 @@ def current_user_view(request):
         return Response({'status': 'success', 'data': {'user': serializer.data}})
 
     if request.method == 'PATCH':
-        serializer = UserUpdateSerializer(
-            request.user, data=request.data, partial=True)
+        serializer = UserUpdateSerializer(request.user, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response({'status': 'error', 'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
-        return Response({
-            'status': 'success',
-            'message': 'User updated',
-            'data': {'user': UserSerializer(request.user).data},
-        })
+        return Response(
+            {
+                'status': 'success',
+                'message': 'User updated',
+                'data': {'user': UserSerializer(request.user).data},
+            }
+        )
 
     if request.method == 'DELETE':
         user = request.user
         user.is_deleted = True
         user.deleted_at = timezone.now()
         user.save()
-        return Response({
-            'status': 'success',
-            'message': 'User deleted',
-            'data': {'user': UserSerializer(user).data},
-        })
+        return Response(
+            {
+                'status': 'success',
+                'message': 'User deleted',
+                'data': {'user': UserSerializer(user).data},
+            }
+        )
 
 
 @api_view(['GET'])
@@ -72,11 +75,14 @@ def get_posts_by_user(request, pk):
         )
     posts = Post.objects.filter(user=user)
     from src.serializers.post_serializers import PostSerializer
-    return Response({
-        'status': 'success',
-        'message': 'User posts fetched successfully',
-        'data': {'posts': PostSerializer(posts, many=True).data},
-    })
+
+    return Response(
+        {
+            'status': 'success',
+            'message': 'User posts fetched successfully',
+            'data': {'posts': PostSerializer(posts, many=True).data},
+        }
+    )
 
 
 @api_view(['GET'])
@@ -90,11 +96,14 @@ def get_roles_by_user(request, pk):
             status=status.HTTP_404_NOT_FOUND,
         )
     from src.serializers.role_serializers import RoleSerializer
+
     if user.role:
-        return Response({
-            'status': 'success',
-            'data': {'role': RoleSerializer(user.role).data},
-        })
+        return Response(
+            {
+                'status': 'success',
+                'data': {'role': RoleSerializer(user.role).data},
+            }
+        )
     return Response({'status': 'success', 'data': {'role': None}})
 
 

@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from src.models import Todo, User
+from src.models import Todo
 from src.serializers.todo_serializers import TodoSerializer
 
 
@@ -11,22 +11,26 @@ from src.serializers.todo_serializers import TodoSerializer
 @permission_classes([IsAuthenticated])
 def get_current_user_todos(request):
     todos = Todo.objects.filter(user=request.user)
-    return Response({
-        'status': 'success',
-        'message': 'Todos fetched successfully',
-        'data': {'todos': TodoSerializer(todos, many=True).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Todos fetched successfully',
+            'data': {'todos': TodoSerializer(todos, many=True).data},
+        }
+    )
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_all_todos(request):
     todos = Todo.objects.select_related('user').all()
-    return Response({
-        'status': 'success',
-        'message': 'Todos fetched successfully',
-        'data': {'todos': TodoSerializer(todos, many=True).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Todos fetched successfully',
+            'data': {'todos': TodoSerializer(todos, many=True).data},
+        }
+    )
 
 
 @api_view(['GET'])
@@ -36,11 +40,13 @@ def get_todo_by_id(request, pk):
         todo = Todo.objects.select_related('user').get(id=pk)
     except Todo.DoesNotExist:
         return Response({'status': 'error', 'message': 'Todo not found'}, status=status.HTTP_404_NOT_FOUND)
-    return Response({
-        'status': 'success',
-        'message': 'Todo fetched successfully',
-        'data': {'todo': TodoSerializer(todo).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Todo fetched successfully',
+            'data': {'todo': TodoSerializer(todo).data},
+        }
+    )
 
 
 @api_view(['POST'])
@@ -55,11 +61,14 @@ def create_todo(request):
         description=request.data.get('description', ''),
         user=request.user,
     )
-    return Response({
-        'status': 'success',
-        'message': 'Todo created successfully',
-        'data': {'todo': TodoSerializer(todo).data},
-    }, status=status.HTTP_201_CREATED)
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Todo created successfully',
+            'data': {'todo': TodoSerializer(todo).data},
+        },
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(['PATCH'])
@@ -81,11 +90,13 @@ def update_todo(request, pk):
             setattr(todo, field, request.data[field])
     todo.save()
 
-    return Response({
-        'status': 'success',
-        'message': 'Todo updated successfully',
-        'data': {'todo': TodoSerializer(todo).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Todo updated successfully',
+            'data': {'todo': TodoSerializer(todo).data},
+        }
+    )
 
 
 @api_view(['DELETE'])
@@ -122,8 +133,10 @@ def toggle_todo(request, pk):
 
     todo.is_completed = not todo.is_completed
     todo.save()
-    return Response({
-        'status': 'success',
-        'message': 'Todo toggled successfully',
-        'data': {'todo': TodoSerializer(todo).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Todo toggled successfully',
+            'data': {'todo': TodoSerializer(todo).data},
+        }
+    )

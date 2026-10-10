@@ -58,8 +58,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     verify_token = models.CharField(max_length=255, blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
-    role = models.ForeignKey(
-        Role, on_delete=models.PROTECT, related_name='users', null=True, blank=True)
+    role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name='users', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(blank=True, null=True)
@@ -82,8 +81,7 @@ class Post(models.Model):
     content = models.TextField()
     image_url = models.TextField(blank=True, default='')
     is_paid = models.BooleanField(default=False)
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='posts')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -98,10 +96,8 @@ class Post(models.Model):
 class Comment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     content = models.TextField()
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments')
-    post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -118,8 +114,7 @@ class Todo(models.Model):
     title = models.TextField()
     description = models.TextField(blank=True, default='')
     is_completed = models.BooleanField(default=False)
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='todos')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='todos')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -133,10 +128,8 @@ class Todo(models.Model):
 
 class Follow(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    follower = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='following')
-    following = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='followers')
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
+    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

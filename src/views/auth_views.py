@@ -1,5 +1,4 @@
 import pyotp
-from django.contrib.auth import authenticate
 from django.db.models import Q
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -60,17 +59,19 @@ def login_view(request):
 
     refresh = RefreshToken.for_user(user)
 
-    return Response({
-        'status': 'success',
-        'message': 'Login successful',
-        'data': {
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'is_otp_enabled': user.is_otp_enabled,
-            'token': str(refresh.access_token),
-            'refreshToken': str(refresh),
-        },
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Login successful',
+            'data': {
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'is_otp_enabled': user.is_otp_enabled,
+                'token': str(refresh.access_token),
+                'refreshToken': str(refresh),
+            },
+        }
+    )
 
 
 @api_view(['POST'])
@@ -138,8 +139,7 @@ def logout_view(request):
 @permission_classes([AllowAny])
 def refresh_token_view(request):
     # Frontends send the refresh token in the body; the header is a fallback
-    token = request.data.get('refreshToken') or request.headers.get(
-        'Authorization', '').replace('Bearer ', '')
+    token = request.data.get('refreshToken') or request.headers.get('Authorization', '').replace('Bearer ', '')
     if not token:
         return Response({'status': 'warning', 'message': 'No token provided'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -157,14 +157,16 @@ def refresh_token_view(request):
         # Blacklist the old token
         BlacklistedToken.objects.create(token=token)
 
-        return Response({
-            'status': 'success',
-            'message': 'Token refreshed successfully',
-            'data': {
-                'token': str(new_refresh.access_token),
-                'refreshToken': str(new_refresh),
-            },
-        })
+        return Response(
+            {
+                'status': 'success',
+                'message': 'Token refreshed successfully',
+                'data': {
+                    'token': str(new_refresh.access_token),
+                    'refreshToken': str(new_refresh),
+                },
+            }
+        )
     except Exception:
         return Response({'status': 'error', 'message': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -231,14 +233,16 @@ def verify_email_view(request):
 
     refresh = RefreshToken.for_user(user)
 
-    return Response({
-        'status': 'success',
-        'message': 'Email verified successfully',
-        'data': {
-            'token': str(refresh.access_token),
-            'refreshToken': str(refresh),
-        },
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Email verified successfully',
+            'data': {
+                'token': str(refresh.access_token),
+                'refreshToken': str(refresh),
+            },
+        }
+    )
 
 
 @api_view(['POST'])
@@ -317,6 +321,7 @@ def change_password_view(request):
 
 # OTP Views
 
+
 def _resolve_request_user(request):
     """Authenticated requests act on the current user; usernameOrEmail is a fallback."""
     if getattr(request, 'user', None) and request.user.is_authenticated:
@@ -342,22 +347,23 @@ def otp_generate_view(request):
 
     secret = pyotp.random_base32()
     totp = pyotp.TOTP(secret)
-    provisioning_uri = totp.provisioning_uri(
-        name=user.username, issuer_name=request.build_absolute_uri('/'))
+    provisioning_uri = totp.provisioning_uri(name=user.username, issuer_name=request.build_absolute_uri('/'))
 
     user.otp_base32 = secret
     user.otp_auth_url = provisioning_uri
     user.save()
 
-    return Response({
-        'status': 'success',
-        'message': 'OTP secret generated',
-        'data': {
-            'secret': secret,
-            'base32': secret,
-            'otpauth_url': provisioning_uri,
-        },
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'OTP secret generated',
+            'data': {
+                'secret': secret,
+                'base32': secret,
+                'otpauth_url': provisioning_uri,
+            },
+        }
+    )
 
 
 @api_view(['POST'])
