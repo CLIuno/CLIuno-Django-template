@@ -1,4 +1,3 @@
-from src.models import User
 from src.tests.base import BaseTestCase
 
 

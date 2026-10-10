@@ -1,5 +1,4 @@
 import pyotp
-from django.contrib.auth import authenticate
 from django.db.models import Q
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes

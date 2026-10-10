@@ -1,4 +1,4 @@
-from src.models import Follow, User
+from src.models import Follow
 from src.tests.base import BaseTestCase
 
 

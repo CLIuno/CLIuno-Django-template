@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from src.models import Todo, User
+from src.models import Todo
 from src.serializers.todo_serializers import TodoSerializer
 
 
