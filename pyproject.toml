@@ -13,3 +13,24 @@ dependencies = [
     "python-dotenv>=1.2.4",
     "qrcode>=8.2",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.17.0",
+]
+
+# Ruff mirrors the FastAPI template's rule set so the two Python templates lint alike.
+# N815 is ignored on purpose: serializer fields such as `usernameOrEmail` / `oldPassword`
+# are the shared REST contract's camelCase request keys and must keep their names.
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+extend-exclude = ["**/migrations/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501", "N815"]
+
+[tool.ruff.format]
+# The codebase is single-quoted, like the workspace's JS/TS (oxfmt single-quote) convention.
+quote-style = "single"
