@@ -4,55 +4,37 @@ from src.tests.base import BaseTestCase
 
 class FollowTest(BaseTestCase):
     def test_follow_user(self):
-        resp = self.client.post(
-            f'/api/v1/follows/{self.admin_user.id}/follow', **self.auth_header()
-        )
+        resp = self.client.post(f'/api/v1/follows/{self.admin_user.id}/follow', **self.auth_header())
         self.assertEqual(resp.status_code, 201)
-        self.assertTrue(
-            Follow.objects.filter(
-                follower=self.user, following=self.admin_user
-            ).exists()
-        )
+        self.assertTrue(Follow.objects.filter(follower=self.user, following=self.admin_user).exists())
 
     def test_follow_self(self):
-        resp = self.client.post(
-            f'/api/v1/follows/{self.user.id}/follow', **self.auth_header()
-        )
+        resp = self.client.post(f'/api/v1/follows/{self.user.id}/follow', **self.auth_header())
         self.assertEqual(resp.status_code, 400)
 
     def test_follow_duplicate(self):
         Follow.objects.create(follower=self.user, following=self.admin_user)
-        resp = self.client.post(
-            f'/api/v1/follows/{self.admin_user.id}/follow', **self.auth_header()
-        )
+        resp = self.client.post(f'/api/v1/follows/{self.admin_user.id}/follow', **self.auth_header())
         self.assertEqual(resp.status_code, 400)
 
     def test_unfollow(self):
         Follow.objects.create(follower=self.user, following=self.admin_user)
-        resp = self.client.delete(
-            f'/api/v1/follows/{self.admin_user.id}/follow', **self.auth_header()
-        )
+        resp = self.client.delete(f'/api/v1/follows/{self.admin_user.id}/follow', **self.auth_header())
         self.assertEqual(resp.status_code, 200)
 
     def test_unfollow_not_following(self):
-        resp = self.client.delete(
-            f'/api/v1/follows/{self.admin_user.id}/follow', **self.auth_header()
-        )
+        resp = self.client.delete(f'/api/v1/follows/{self.admin_user.id}/follow', **self.auth_header())
         self.assertEqual(resp.status_code, 404)
 
     def test_get_followers(self):
         Follow.objects.create(follower=self.user, following=self.admin_user)
-        resp = self.client.get(
-            f'/api/v1/follows/{self.admin_user.id}/followers', **self.auth_header()
-        )
+        resp = self.client.get(f'/api/v1/follows/{self.admin_user.id}/followers', **self.auth_header())
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(resp.json()['data']['followers']), 1)
 
     def test_get_following(self):
         Follow.objects.create(follower=self.user, following=self.admin_user)
-        resp = self.client.get(
-            f'/api/v1/follows/{self.user.id}/following', **self.auth_header()
-        )
+        resp = self.client.get(f'/api/v1/follows/{self.user.id}/following', **self.auth_header())
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(resp.json()['data']['following']), 1)
 

@@ -12,11 +12,13 @@ from src.serializers.user_serializers import UserSerializer
 @permission_classes([IsAdmin])
 def get_all_roles(request):
     roles = Role.objects.all()
-    return Response({
-        'status': 'success',
-        'message': 'Roles fetched successfully',
-        'data': {'roles': RoleSerializer(roles, many=True).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Roles fetched successfully',
+            'data': {'roles': RoleSerializer(roles, many=True).data},
+        }
+    )
 
 
 @api_view(['GET'])
@@ -26,11 +28,13 @@ def get_role_by_id(request, pk):
         role = Role.objects.get(id=pk)
     except Role.DoesNotExist:
         return Response({'status': 'warning', 'message': 'Role not found'}, status=status.HTTP_404_NOT_FOUND)
-    return Response({
-        'status': 'success',
-        'message': 'Role fetched successfully',
-        'data': {'role': RoleSerializer(role).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Role fetched successfully',
+            'data': {'role': RoleSerializer(role).data},
+        }
+    )
 
 
 @api_view(['POST'])
@@ -44,11 +48,14 @@ def create_role(request):
         return Response({'status': 'warning', 'message': 'Role already exists'}, status=status.HTTP_400_BAD_REQUEST)
 
     role = Role.objects.create(name=name)
-    return Response({
-        'status': 'success',
-        'message': 'Role created successfully',
-        'data': {'savedRole': RoleSerializer(role).data},
-    }, status=status.HTTP_201_CREATED)
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Role created successfully',
+            'data': {'savedRole': RoleSerializer(role).data},
+        },
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(['PATCH'])
@@ -63,11 +70,13 @@ def update_role(request, pk):
     if not serializer.is_valid():
         return Response({'status': 'error', 'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     serializer.save()
-    return Response({
-        'status': 'success',
-        'message': 'Role updated successfully',
-        'data': {'updatedRole': RoleSerializer(role).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Role updated successfully',
+            'data': {'updatedRole': RoleSerializer(role).data},
+        }
+    )
 
 
 @api_view(['DELETE'])
@@ -91,8 +100,10 @@ def get_users_by_role(request, role_id):
         return Response({'status': 'warning', 'message': 'Role not found'}, status=status.HTTP_404_NOT_FOUND)
 
     users = User.objects.filter(role=role)
-    return Response({
-        'status': 'success',
-        'message': 'Users found',
-        'data': {'users': UserSerializer(users, many=True).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Users found',
+            'data': {'users': UserSerializer(users, many=True).data},
+        }
+    )

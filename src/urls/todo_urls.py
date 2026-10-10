@@ -14,8 +14,6 @@ from src.views.todo_views import (
 urlpatterns = [
     path('/current-user', get_current_user_todos, name='todo-current-user'),
     path('', method_dispatch(GET=get_all_todos, POST=create_todo), name='todo-collection'),
-    path('/<uuid:pk>',
-         method_dispatch(GET=get_todo_by_id, PATCH=update_todo, DELETE=delete_todo),
-         name='todo-detail'),
+    path('/<uuid:pk>', method_dispatch(GET=get_todo_by_id, PATCH=update_todo, DELETE=delete_todo), name='todo-detail'),
     path('/<uuid:pk>/toggle', toggle_todo, name='todo-toggle'),
 ]

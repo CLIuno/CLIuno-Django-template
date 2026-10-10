@@ -11,38 +11,42 @@ from src.serializers.post_serializers import CommentSerializer, PostSerializer
 @permission_classes([IsAuthenticated])
 def get_current_user_posts(request):
     posts = Post.objects.filter(user=request.user)
-    return Response({
-        'status': 'success',
-        'message': 'User posts fetched successfully',
-        'data': {'posts': PostSerializer(posts, many=True).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'User posts fetched successfully',
+            'data': {'posts': PostSerializer(posts, many=True).data},
+        }
+    )
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_all_posts(request):
-    posts = Post.objects.select_related(
-        'user').prefetch_related('comments__user').all()
-    return Response({
-        'status': 'success',
-        'message': 'Posts fetched successfully',
-        'data': {'posts': PostSerializer(posts, many=True).data},
-    })
+    posts = Post.objects.select_related('user').prefetch_related('comments__user').all()
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Posts fetched successfully',
+            'data': {'posts': PostSerializer(posts, many=True).data},
+        }
+    )
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_post_by_id(request, pk):
     try:
-        post = Post.objects.select_related(
-            'user').prefetch_related('comments__user').get(id=pk)
+        post = Post.objects.select_related('user').prefetch_related('comments__user').get(id=pk)
     except Post.DoesNotExist:
         return Response({'status': 'error', 'message': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
-    return Response({
-        'status': 'success',
-        'message': 'Post fetched successfully',
-        'data': {'post': PostSerializer(post).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Post fetched successfully',
+            'data': {'post': PostSerializer(post).data},
+        }
+    )
 
 
 @api_view(['POST'])
@@ -65,11 +69,13 @@ def create_post(request):
         is_paid=request.data.get('is_paid', False),
         user=request.user,
     )
-    return Response({
-        'status': 'success',
-        'message': 'Post created successfully',
-        'data': {'result': PostSerializer(post).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Post created successfully',
+            'data': {'result': PostSerializer(post).data},
+        }
+    )
 
 
 @api_view(['PATCH'])
@@ -114,24 +120,30 @@ def get_user_by_post(request, post_id):
         return Response({'status': 'error', 'message': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
 
     from src.serializers.user_serializers import UserSerializer
-    return Response({
-        'status': 'success',
-        'message': 'User found',
-        'data': {'user': UserSerializer(post.user).data},
-    })
+
+    return Response(
+        {
+            'status': 'success',
+            'message': 'User found',
+            'data': {'user': UserSerializer(post.user).data},
+        }
+    )
 
 
 # Comment views
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_comments_by_post(request, post_id):
     comments = Comment.objects.filter(post_id=post_id).select_related('user')
-    return Response({
-        'status': 'success',
-        'message': 'Comments fetched successfully',
-        'data': {'comments': CommentSerializer(comments, many=True).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Comments fetched successfully',
+            'data': {'comments': CommentSerializer(comments, many=True).data},
+        }
+    )
 
 
 @api_view(['POST'])
@@ -146,13 +158,15 @@ def create_comment(request, post_id):
     except Post.DoesNotExist:
         return Response({'status': 'error', 'message': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    comment = Comment.objects.create(
-        content=content, user=request.user, post=post)
-    return Response({
-        'status': 'success',
-        'message': 'Comment created successfully',
-        'data': {'comment': CommentSerializer(comment).data},
-    }, status=status.HTTP_201_CREATED)
+    comment = Comment.objects.create(content=content, user=request.user, post=post)
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Comment created successfully',
+            'data': {'comment': CommentSerializer(comment).data},
+        },
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(['PATCH'])
@@ -171,11 +185,13 @@ def update_comment(request, post_id, pk):
 
     comment.content = request.data.get('content', comment.content)
     comment.save()
-    return Response({
-        'status': 'success',
-        'message': 'Comment updated successfully',
-        'data': {'comment': CommentSerializer(comment).data},
-    })
+    return Response(
+        {
+            'status': 'success',
+            'message': 'Comment updated successfully',
+            'data': {'comment': CommentSerializer(comment).data},
+        }
+    )
 
 
 @api_view(['DELETE'])

@@ -25,8 +25,7 @@ urlpatterns = [
     path('refresh-token', refresh_token_view, name='auth-refresh-token'),
     path('check-token', check_token_view, name='auth-check-token'),
     # Email Verification
-    path('send-verify-email', send_verify_email_view,
-         name='auth-send-verify-email'),
+    path('send-verify-email', send_verify_email_view, name='auth-send-verify-email'),
     path('verify-email', verify_email_view, name='auth-verify-email'),
     # Password Management
     path('forgot-password', forgot_password_view, name='auth-forgot-password'),
