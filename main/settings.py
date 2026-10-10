@@ -107,13 +107,19 @@ if DEBUG:
 else:
     CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5000').split(',')
 
-# Email
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('MAIL_HOST', '127.0.0.1')
-EMAIL_PORT = int(os.getenv('MAIL_PORT', '1025'))
-EMAIL_HOST_USER = os.getenv('MAIL_USERNAME', '')
-EMAIL_HOST_PASSWORD = os.getenv('MAIL_PASSWORD', '')
-EMAIL_USE_TLS = os.getenv('MAIL_ENCRYPTION', 'null') == 'tls'
+# Email (Django 6.1 MAILERS; the legacy EMAIL_* settings are deprecated for removal in 2028)
+MAILERS = {
+    'default': {
+        'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+        'OPTIONS': {
+            'host': os.getenv('MAIL_HOST', '127.0.0.1'),
+            'port': int(os.getenv('MAIL_PORT', '1025')),
+            'username': os.getenv('MAIL_USERNAME', ''),
+            'password': os.getenv('MAIL_PASSWORD', ''),
+            'use_tls': os.getenv('MAIL_ENCRYPTION', 'null') == 'tls',
+        },
+    },
+}
 DEFAULT_FROM_EMAIL = os.getenv('MAIL_FROM_ADDRESS', 'cliuno@example.com')
 
 # App
